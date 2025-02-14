@@ -3,7 +3,7 @@ name: Build and Run Spring Boot App
 on:
   push:
     branches:
-      - main  # Trigger the workflow when code is pushed to the main branch
+      - main  # Runs the workflow when code is pushed to the main branch
 
 jobs:
   build-and-run:
@@ -25,9 +25,21 @@ jobs:
       - name: Build the Spring Boot Application
         run: mvn clean package
 
-      - name: Show Public IP of the GitHub Runner
+      - name: Show Public IP of the GitHub Runner (Won't be accessible)
         run: curl -s ifconfig.me
 
-      - name: Run Spring Boot Application
+      - name: Run Spring Boot Application on Port 1900
         run: |
           nohup java -jar target/*.jar --server.port=1900 --server.address=0.0.0.0 &
+
+      - name: Install ngrok
+        run: |
+          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+          sudo apt update && sudo apt install ngrok
+
+      - name: Start ngrok Tunnel to Expose Port 1900
+        run: |
+          nohup ngrok http 1900 --log=stdout > ngrok.log 2>&1 &
+          sleep 5
+          curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
