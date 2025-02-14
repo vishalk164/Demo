@@ -12,4 +12,15 @@ public class HelloController {
     public String home() {
         return "Application is running";
     }
+    
+    @GetMapping("new")
+    public String home2() {
+    	return "Application is runnning on another path";
+    }
+    
+    @GetMapping("new1")
+    public String home3() {
+    	return "Application is runnning on another Path 2";
+    	
+    }
 }
