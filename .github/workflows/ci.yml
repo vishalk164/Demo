@@ -1,9 +1,9 @@
-name: Build and Deploy Spring Boot App
+name: Build and Run Spring Boot App
 
 on:
   push:
     branches:
-      - main  # Runs the workflow when code is pushed to the main branch
+      - main  # Trigger the workflow when code is pushed to the main branch
 
 jobs:
   build-and-run:
@@ -25,23 +25,9 @@ jobs:
       - name: Build the Spring Boot Application
         run: mvn clean package
 
-      - name: Install ngrok
-        run: |
-          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
-          sudo apt update && sudo apt install -y ngrok
-          ngrok authtoken YOUR_NGROK_AUTH_TOKEN  # Replace with your ngrok token
-
-      - name: Run the Spring Boot Application
-        run: |
-          nohup java -jar target/*.jar --server.port=1900 --server.address=0.0.0.0 &
-
-      - name: Start ngrok to expose the application
-        run: |
-          nohup ngrok http 1900 &
-
       - name: Show Public IP of the GitHub Runner
         run: curl -s ifconfig.me
 
-      - name: Show Public ngrok URL
-        run: curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+      - name: Run Spring Boot Application
+        run: |
+          nohup java -jar target/*.jar --server.port=1900 --server.address=0.0.0.0 &
