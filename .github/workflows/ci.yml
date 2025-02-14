@@ -1,12 +1,12 @@
-name: CI Pipeline
+name: Build and Deploy Spring Boot App
 
 on:
   push:
     branches:
-      - main
+      - main  # Runs the workflow when code is pushed to the main branch
 
 jobs:
-  build:
+  build-and-run:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,16 +19,29 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build the Project
-        run: mvn clean install
+      - name: Install Maven
+        run: sudo apt update && sudo apt install -y maven
 
-      - name: Run the Application
+      - name: Build the Spring Boot Application
+        run: mvn clean package
+
+      - name: Install ngrok
         run: |
-          nohup mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=1900" &
+          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+          sudo apt update && sudo apt install -y ngrok
+          ngrok authtoken YOUR_NGROK_AUTH_TOKEN  # Replace with your ngrok token
 
-      - name: Wait for Application to Start
-        run: sleep 20
-
-      - name: Verify Application is Running
+      - name: Run the Spring Boot Application
         run: |
-          curl -s http://localhost:1900 | grep "Application is running"
+          nohup java -jar target/*.jar --server.port=1900 --server.address=0.0.0.0 &
+
+      - name: Start ngrok to expose the application
+        run: |
+          nohup ngrok http 1900 &
+
+      - name: Show Public IP of the GitHub Runner
+        run: curl -s ifconfig.me
+
+      - name: Show Public ngrok URL
+        run: curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
