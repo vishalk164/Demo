@@ -10,7 +10,7 @@ public class HelloController {
 
     @GetMapping
     public String home() {
-        return "Application is running";
+        return "Application is running successfull";
     }
     
     @GetMapping("new")
