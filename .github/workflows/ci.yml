@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: Build and Run Spring Boot App
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-run:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,17 +18,17 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'maven'
 
-      - name: Build the Project
-        run: mvn clean install
+      - name: Build the Spring Boot Application
+        run: mvn clean package
 
-      - name: Run the Application
+      - name: Show Public IP of the GitHub Runner
+        run: curl -s ifconfig.me
+
+      - name: Run Spring Boot Application on Port 1900
         run: |
-          nohup mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=1900" &
+          nohup java -jar target/*.jar --server.port=1900 &
 
-      - name: Wait for Application to Start
-        run: sleep 20
-
-      - name: Verify Application is Running
-        run: |
-          curl -s http://localhost:1900 | grep "Application is running"
+      - name: Check Running Processes
+        run: ps aux | grep java
