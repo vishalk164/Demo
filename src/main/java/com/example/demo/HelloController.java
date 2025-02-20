@@ -18,4 +18,9 @@ public class HelloController {
         return "Application is running successfull";
         
     }
+    @GetMapping("/new/n")
+    public String home2() {
+        return "Application is running successfull";
+        
+    }
 }
